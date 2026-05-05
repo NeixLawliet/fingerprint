@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string password
  * @property string device_id
  * @property int    is_active
+ * @property string role
  * @property int    created_at
  * @property int    updated_at
  */
@@ -49,6 +50,7 @@ class Users extends Model
 		'password',
 		'device_id',
 		'is_active',
+		'role',
 		'created_at',
 		'updated_at',
     ];

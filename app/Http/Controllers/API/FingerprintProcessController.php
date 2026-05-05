@@ -85,9 +85,10 @@ class FingerprintProcessController extends Controller
         // 6. Bandingkan dengan semua template user LAIN
         $matchResult = $this->matchAgainstAll($templateVector, $id, $fingerprint->user_id);
 
-        // 7. Simpan log
+        // 7. Simpan log — jika mode absen (user_id null), pakai matched_user_id
+        $logUserId = $fingerprint->user_id ?? $matchResult['matched_user_id'];
         $log = FingerprintLogs::create([
-            'user_id'          => $fingerprint->user_id,
+            'user_id'          => $logUserId,
             'similarity_score' => $matchResult['score'],
             'status'           => $matchResult['status'],
             'note'             => $matchResult['note'],
@@ -209,19 +210,26 @@ class FingerprintProcessController extends Controller
         }
 
         if ($isMatch) {
+            $user = \App\Models\Users::find($bestUserId);
+            $userName = $user ? $user->name : null;
+            $userRole = $user ? $user->role : null;
             return [
-                'status'          => 'match',
-                'score'           => $bestScore,
-                'matched_user_id' => $bestUserId,
-                'note'            => "Cocok dengan fingerprint_id #{$bestFingerprintId} (score: {$bestScore})",
+                'status'            => 'match',
+                'score'             => $bestScore,
+                'matched_user_id'   => $bestUserId,
+                'matched_user_name' => $userName,
+                'matched_user_role' => $userRole,
+                'note'              => "Cocok: " . ($userName ?? "user_id #{$bestUserId}") . " (score: {$bestScore})",
             ];
         }
 
         return [
-            'status'          => 'not_match',
-            'score'           => $bestScore,
-            'matched_user_id' => null,
-            'note'            => "Tidak cocok. Score tertinggi: {$bestScore} (threshold: " . FingerprintProcessor::THRESHOLD . ')',
+            'status'            => 'not_match',
+            'score'             => $bestScore,
+            'matched_user_id'   => null,
+            'matched_user_name' => null,
+            'matched_user_role' => null,
+            'note'              => "Tidak cocok. Score tertinggi: {$bestScore} (threshold: " . FingerprintProcessor::THRESHOLD . ')',
         ];
     }
 }

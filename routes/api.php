@@ -10,6 +10,7 @@ use App\Http\Controllers\API\FingerprintSampleController;
 use App\Http\Controllers\API\FingerprintTemplateController;
 use App\Http\Controllers\API\FingerprintLogController;
 use App\Http\Controllers\API\FingerprintProcessController;
+use App\Http\Controllers\API\RegistrationController;
 use Illuminate\Support\Facades\Route;
 
 // ---- Route Use Generator ----
@@ -17,6 +18,13 @@ use Illuminate\Support\Facades\Route;
 // Fingerprint processing pipeline
 Route::post('fingerprints/{id}/process', [FingerprintProcessController::class, 'process'])->name('fingerprints.process');
 Route::post('fingerprints/{id}/verify',  [FingerprintProcessController::class, 'verify'])->name('fingerprints.verify');
+
+// Registration session (web ↔ ESP32 real-time)
+Route::post('registration/start',         [RegistrationController::class, 'start']);
+Route::get('registration/pending',        [RegistrationController::class, 'pending']);
+Route::get('registration/status/{id}',    [RegistrationController::class, 'status']);
+Route::post('registration/complete/{id}', [RegistrationController::class, 'complete']);
+Route::post('registration/cancel/{id}',   [RegistrationController::class, 'cancel']);
 
 
 Route::controller(UserController::class)->group(function() {
