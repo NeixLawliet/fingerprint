@@ -9,11 +9,12 @@ return new class extends Migration {
     {
         Schema::create('fingerprint_templates', function (Blueprint $table) {
             $table->id();
-            $table->integer('fingerprint_id')->nullable(); // tanpa FK
-            $table->json('template_vector')->nullable();
-            $table->string('algorithm_version')->default('v1')->nullable();
+            $table->integer('fingerprint_id')->nullable();
+            $table->longText('template_vector')->nullable();
+            $table->string('algorithm_version')->nullable();
             $table->softDeletes();
             $table->timestamps();
+            $table->index(['algorithm_version', 'deleted_at'])->nullable();
         });
     }
 

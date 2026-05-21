@@ -9,11 +9,13 @@ return new class extends Migration {
     {
         Schema::create('fingerprint_samples', function (Blueprint $table) {
             $table->id();
-            $table->integer('fingerprint_id')->nullable(); // tanpa FK
-            $table->integer('sample_index')->nullable();
-            $table->json('raw_data')->nullable();
+            $table->unsignedBigInteger('fingerprint_id');
+            $table->unsignedSmallInteger('sample_index');
+            $table->longText('raw_data');
             $table->softDeletes();
             $table->timestamps();
+
+            $table->foreign('fingerprint_id')->references('id')->on('fingerprints')->cascadeOnDelete();
         });
     }
 

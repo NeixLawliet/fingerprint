@@ -9,7 +9,7 @@ return new class extends Migration {
     {
         Schema::create('fingerprint_logs', function (Blueprint $table) {
             $table->id();
-            $table->integer('user_id')->nullable(); // tanpa FK
+            $table->integer('employee_id')->nullable();
             $table->float('similarity_score')->nullable();
             $table->enum('status', ['match', 'not_match'])->nullable();
             $table->text('note')->nullable();

@@ -3,86 +3,49 @@
 namespace App\Models;
 
 use DB;
-use Illuminate\Support\Str;
 use App\Helpers\ModelHelper;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
- * @property int    user_id
- * @property int    deleted_at
- * @property int    created_at
- * @property int    updated_at
+ * @property int    employee_id
  * @property float  similarity_score
  * @property string status
  * @property string note
+ * @property string created_at
+ * @property string updated_at
+ * @property string deleted_at
  */
 class FingerprintLogs extends Model
 {
     use SoftDeletes;
 
-    /**
-     * The database table used by the model.
-     *
-     * @var string
-     */
     protected $table = 'fingerprint_logs';
 
-    /**
-     * The primary key for the model.
-     *
-     * @var string
-     */
     protected $primaryKey = 'id';
-    
-    /**
-     * Attributes that should be mass-assignable.
-     *
-     * @var array
-     */
+
     protected $fillable = [
-        'user_id',
-		'similarity_score',
-		'status',
-		'note',
-		'deleted_at',
-		'created_at',
-		'updated_at',
+        'employee_id',
+        'similarity_score',
+        'status',
+        'note',
+        'created_at',
+        'updated_at',
+        'deleted_at',
     ];
 
-    /**
-     * The attributes excluded from the model's JSON form.
-     *
-     * @var array
-     */
     protected $hidden = [
-        
+
     ];
 
-    /**
-     * The attributes that should be casted to native types.
-     *
-     * @var array
-     */
     protected $casts = [
-        'user_id' => 'int', 'status' => 'string', 'note' => 'string', 'deleted_at' => 'datetime', 'created_at' => 'datetime', 'updated_at' => 'datetime'
+        'employee_id' => 'int', 'similarity_score' => 'float', 'status' => 'string', 'note' => 'string', 'created_at' => 'datetime', 'updated_at' => 'datetime', 'deleted_at' => 'datetime'
     ];
 
-    /**
-     * The attributes that should be mutated to dates.
-     *
-     * @var array
-     */
     protected $dates = [
 
     ];
 
-    /**
-     * Indicates if the model should be timestamped.
-     *
-     * @var boolean
-     */
     public $timestamps = true;
 
     public $incrementing = true;
@@ -93,6 +56,11 @@ class FingerprintLogs extends Model
 
     // Relations ...
 
+    public function employee()
+    {
+        return $this->belongsTo(Employee::class, 'employee_id');
+    }
+
     public static function mapSchema($params = [], $user = [])
     {
         $model = new self;
@@ -100,13 +68,13 @@ class FingerprintLogs extends Model
         return [
             'field' => [
                 'id' => ['column' => $model->table.'.id', 'alias' => 'id', 'type' => 'int'],
-				'user_id' => ['column' => $model->table.'.user_id', 'alias' => 'user_id', 'type' => 'int'],
-				'similarity_score' => ['column' => $model->table.'.similarity_score', 'alias' => 'similarity_score', 'type' => 'int'],
-				'status' => ['column' => $model->table.'.status', 'alias' => 'status', 'type' => 'string'],
-				'note' => ['column' => $model->table.'.note', 'alias' => 'note', 'type' => 'string'],
-				'deleted_at' => ['column' => $model->table.'.deleted_at', 'alias' => 'deleted_at', 'type' => 'date'],
-				'created_at' => ['column' => $model->table.'.created_at', 'alias' => 'created_at', 'type' => 'date'],
-				'updated_at' => ['column' => $model->table.'.updated_at', 'alias' => 'updated_at', 'type' => 'date'],
+                'employee_id' => ['column' => $model->table.'.employee_id', 'alias' => 'employee_id', 'type' => 'int'],
+                'similarity_score' => ['column' => $model->table.'.similarity_score', 'alias' => 'similarity_score', 'type' => 'float'],
+                'status' => ['column' => $model->table.'.status', 'alias' => 'status', 'type' => 'string'],
+                'note' => ['column' => $model->table.'.note', 'alias' => 'note', 'type' => 'string'],
+                'created_at' => ['column' => $model->table.'.created_at', 'alias' => 'created_at', 'type' => 'date'],
+                'updated_at' => ['column' => $model->table.'.updated_at', 'alias' => 'updated_at', 'type' => 'date'],
+                'deleted_at' => ['column' => $model->table.'.deleted_at', 'alias' => 'deleted_at', 'type' => 'date'],
             ],
             'join' => [
 
@@ -125,13 +93,12 @@ class FingerprintLogs extends Model
 
         $qry = ModelHelper::select($schema['field'], null, __CLASS__);
         ModelHelper::join($schema['join'], null, $qry);
-        
-        //FILTER
 
+        //FILTER
         $totalFiltered = $qry->count();
 
         if (empty($search)) {
-            
+
             if ($length > 0) {
                 $qry->skip($start)
                     ->take($length);
@@ -176,8 +143,8 @@ class FingerprintLogs extends Model
         $append = [];
         $schema = self::mapSchema();
 
-        $paramsPage = isset($params['page']) ? $params['page'] : 0;
-        
+        $params_page = isset($params['page']) ? $params['page'] : 0;
+
         $or = [];
 
         unset($params['page']);
@@ -198,7 +165,7 @@ class FingerprintLogs extends Model
             ModelHelper::dynamicFilterOr($or, $request, $db, __CLASS__);
         }
 
-        $results = ModelHelper::generatePagingResults($schema, $paramsPage, $params, $request, $db, $append);
+        $results = ModelHelper::generatePagingResults($schema, $params_page, $params, $request, $db, $append);
 
         return response()->json($results);
     }
@@ -210,11 +177,11 @@ class FingerprintLogs extends Model
         $append = [];
 
         $schema = self::mapSchema();
-        
+
         $db = ModelHelper::select($schema['field'], $request, __CLASS__)->where($models->table.'.id', $id);
-        
+
         ModelHelper::join($schema['join'], $request, $db);
-        
+
         return response()->json($db->first());
     }
 
@@ -224,7 +191,7 @@ class FingerprintLogs extends Model
         $schema = self::mapSchema();
 
         $or = [];
-        
+
         unset($params['all']);
 
         if (isset($params['or']) && $params['or']) {
@@ -264,7 +231,7 @@ class FingerprintLogs extends Model
             $update = self::where('id', $params['id'])->update($params);
 
             DB::commit();
-            
+
             return response()->json([
                 'status' => 'success',
                 'message' => 'Succesfully Updated Data',

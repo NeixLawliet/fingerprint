@@ -3,90 +3,53 @@
 namespace App\Models;
 
 use DB;
-use Illuminate\Support\Str;
 use App\Helpers\ModelHelper;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * @property string name
- * @property string email
- * @property string phone
- * @property string password
+ * @property string employee_code
+ * @property string department
+ * @property string position
+ * @property int    finger_page
  * @property string device_id
- * @property int    is_active
- * @property string role
- * @property int    created_at
- * @property int    updated_at
+ * @property string created_at
+ * @property string updated_at
+ * @property string deleted_at
  */
-class Users extends Model
+class Employee extends Model
 {
     use SoftDeletes;
 
-    /**
-     * The database table used by the model.
-     *
-     * @var string
-     */
-    protected $table = 'users';
+    protected $table = 'employees';
 
-    /**
-     * The primary key for the model.
-     *
-     * @var string
-     */
     protected $primaryKey = 'id';
-    
-    /**
-     * Attributes that should be mass-assignable.
-     *
-     * @var array
-     */
+
     protected $fillable = [
         'name',
-		'email',
-		'phone',
-		'password',
-		'device_id',
-		'is_active',
-		'role',
-		'created_at',
-		'updated_at',
+        'employee_code',
+        'department',
+        'position',
+        'finger_page',
+        'device_id',
+        'created_at',
+        'updated_at',
+        'deleted_at',
     ];
 
-    /**
-     * The attributes excluded from the model's JSON form.
-     *
-     * @var array
-     */
     protected $hidden = [
-        
+
     ];
 
-    /**
-     * The attributes that should be casted to native types.
-     *
-     * @var array
-     */
     protected $casts = [
-        'name' => 'string', 'email' => 'string', 'phone' => 'string', 'password' => 'string', 'device_id' => 'string', 'is_active' => 'int', 'created_at' => 'datetime', 'updated_at' => 'datetime'
+        'name' => 'string', 'employee_code' => 'string', 'department' => 'string', 'position' => 'string', 'finger_page' => 'int', 'device_id' => 'string', 'created_at' => 'datetime', 'updated_at' => 'datetime', 'deleted_at' => 'datetime'
     ];
 
-    /**
-     * The attributes that should be mutated to dates.
-     *
-     * @var array
-     */
     protected $dates = [
 
     ];
 
-    /**
-     * Indicates if the model should be timestamped.
-     *
-     * @var boolean
-     */
     public $timestamps = true;
 
     public $incrementing = true;
@@ -97,6 +60,21 @@ class Users extends Model
 
     // Relations ...
 
+    public function fingerprints()
+    {
+        return $this->hasMany(Fingerprints::class, 'employee_id');
+    }
+
+    public function attendanceLogs()
+    {
+        return $this->hasMany(AttendanceLog::class, 'employee_id');
+    }
+
+    public function fingerprintLogs()
+    {
+        return $this->hasMany(FingerprintLogs::class, 'employee_id');
+    }
+
     public static function mapSchema($params = [], $user = [])
     {
         $model = new self;
@@ -104,14 +82,15 @@ class Users extends Model
         return [
             'field' => [
                 'id' => ['column' => $model->table.'.id', 'alias' => 'id', 'type' => 'int'],
-				'name' => ['column' => $model->table.'.name', 'alias' => 'name', 'type' => 'string'],
-				'email' => ['column' => $model->table.'.email', 'alias' => 'email', 'type' => 'string'],
-				'phone' => ['column' => $model->table.'.phone', 'alias' => 'phone', 'type' => 'string'],
-				'password' => ['column' => $model->table.'.password', 'alias' => 'password', 'type' => 'string'],
-				'device_id' => ['column' => $model->table.'.device_id', 'alias' => 'device_id', 'type' => 'string'],
-				'is_active' => ['column' => $model->table.'.is_active', 'alias' => 'is_active', 'type' => 'int'],
-				'created_at' => ['column' => $model->table.'.created_at', 'alias' => 'created_at', 'type' => 'date'],
-				'updated_at' => ['column' => $model->table.'.updated_at', 'alias' => 'updated_at', 'type' => 'date'],
+                'name' => ['column' => $model->table.'.name', 'alias' => 'name', 'type' => 'string'],
+                'employee_code' => ['column' => $model->table.'.employee_code', 'alias' => 'employee_code', 'type' => 'string'],
+                'department' => ['column' => $model->table.'.department', 'alias' => 'department', 'type' => 'string'],
+                'position' => ['column' => $model->table.'.position', 'alias' => 'position', 'type' => 'string'],
+                'finger_page' => ['column' => $model->table.'.finger_page', 'alias' => 'finger_page', 'type' => 'int'],
+                'device_id' => ['column' => $model->table.'.device_id', 'alias' => 'device_id', 'type' => 'string'],
+                'created_at' => ['column' => $model->table.'.created_at', 'alias' => 'created_at', 'type' => 'date'],
+                'updated_at' => ['column' => $model->table.'.updated_at', 'alias' => 'updated_at', 'type' => 'date'],
+                'deleted_at' => ['column' => $model->table.'.deleted_at', 'alias' => 'deleted_at', 'type' => 'date'],
             ],
             'join' => [
 
@@ -130,13 +109,12 @@ class Users extends Model
 
         $qry = ModelHelper::select($schema['field'], null, __CLASS__);
         ModelHelper::join($schema['join'], null, $qry);
-        
-        //FILTER
 
+        //FILTER
         $totalFiltered = $qry->count();
 
         if (empty($search)) {
-            
+
             if ($length > 0) {
                 $qry->skip($start)
                     ->take($length);
@@ -181,8 +159,8 @@ class Users extends Model
         $append = [];
         $schema = self::mapSchema();
 
-        $paramsPage = isset($params['page']) ? $params['page'] : 0;
-        
+        $params_page = isset($params['page']) ? $params['page'] : 0;
+
         $or = [];
 
         unset($params['page']);
@@ -203,7 +181,7 @@ class Users extends Model
             ModelHelper::dynamicFilterOr($or, $request, $db, __CLASS__);
         }
 
-        $results = ModelHelper::generatePagingResults($schema, $paramsPage, $params, $request, $db, $append);
+        $results = ModelHelper::generatePagingResults($schema, $params_page, $params, $request, $db, $append);
 
         return response()->json($results);
     }
@@ -215,11 +193,11 @@ class Users extends Model
         $append = [];
 
         $schema = self::mapSchema();
-        
+
         $db = ModelHelper::select($schema['field'], $request, __CLASS__)->where($models->table.'.id', $id);
-        
+
         ModelHelper::join($schema['join'], $request, $db);
-        
+
         return response()->json($db->first());
     }
 
@@ -229,7 +207,7 @@ class Users extends Model
         $schema = self::mapSchema();
 
         $or = [];
-        
+
         unset($params['all']);
 
         if (isset($params['or']) && $params['or']) {
@@ -269,7 +247,7 @@ class Users extends Model
             $update = self::where('id', $params['id'])->update($params);
 
             DB::commit();
-            
+
             return response()->json([
                 'status' => 'success',
                 'message' => 'Succesfully Updated Data',

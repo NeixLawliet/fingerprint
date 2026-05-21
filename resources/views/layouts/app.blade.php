@@ -156,26 +156,11 @@
         </li>
     </ul>
 
-    <div class="sidebar-section">Fingerprint</div>
+    <div class="sidebar-section">Absensi</div>
     <ul class="sidebar-menu">
         <li>
-            <a href="{{ route('fingerprints.index') }}" class="{{ request()->routeIs('fingerprints.*') ? 'active' : '' }}">
-                <span class="mi"><i class="fas fa-fingerprint"></i></span> Fingerprints
-            </a>
-        </li>
-        <li>
-            <a href="{{ route('fingerprint_samples.index') }}" class="{{ request()->routeIs('fingerprint_samples.*') ? 'active' : '' }}">
-                <span class="mi"><i class="fas fa-database"></i></span> Samples
-            </a>
-        </li>
-        <li>
-            <a href="{{ route('fingerprint_templates.index') }}" class="{{ request()->routeIs('fingerprint_templates.*') ? 'active' : '' }}">
-                <span class="mi"><i class="fas fa-layer-group"></i></span> Templates
-            </a>
-        </li>
-        <li>
-            <a href="{{ route('fingerprint_logs.index') }}" class="{{ request()->routeIs('fingerprint_logs.*') ? 'active' : '' }}">
-                <span class="mi"><i class="fas fa-clipboard-list"></i></span> Logs
+            <a href="{{ route('attendance.index') }}" class="{{ request()->routeIs('attendance.*') ? 'active' : '' }}">
+                <span class="mi"><i class="fas fa-clipboard-list"></i></span> Log Absensi
             </a>
         </li>
     </ul>
@@ -183,8 +168,8 @@
     <div class="sidebar-section">Management</div>
     <ul class="sidebar-menu">
         <li>
-            <a href="{{ route('users.index') }}" class="{{ request()->routeIs('users.*') ? 'active' : '' }}">
-                <span class="mi"><i class="fas fa-users"></i></span> Users
+            <a href="{{ route('employees.index') }}" class="{{ request()->routeIs('employees.*') ? 'active' : '' }}">
+                <span class="mi"><i class="fas fa-users"></i></span> Karyawan
             </a>
         </li>
     </ul>
@@ -210,6 +195,8 @@
     <!-- CONTENT -->
     <div class="content-area">
         @yield('content')
+
+        @yield('modal')
     </div>
 
 </div>
@@ -222,6 +209,8 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
+    var BASE_URL = '{{ rtrim(request()->getSchemeAndHttpHost(), '/') }}';
+
     // ===== SIDEBAR TOGGLE =====
     $('#sidebarToggle').on('click', function () {
         $('#sidebar').toggleClass('open');
@@ -253,6 +242,74 @@
             cancelButtonText: 'Batal'
         }).then(function (result) {
             if (result.isConfirmed) callback();
+        });
+    }
+
+    function showLoading(title, message, timer) {
+        Swal.fire({
+            title: title,
+            html: message,
+            didOpen: function () { Swal.showLoading(); },
+            timer: timer || 0
+        });
+    }
+
+    function showAlertOnSubmit(params, modal, table, reload, reloadBlank) {
+        if (params.status === 'success') {
+            setTimeout(function () {
+                Swal.fire({
+                    title: 'Sukses',
+                    text: params.message,
+                    icon: 'success',
+                    showConfirmButton: false,
+                    timer: 1000
+                }).then(function () {
+                    if (modal)       $(modal).modal('hide');
+                    if (table)       $(table).DataTable().ajax.reload(null, false);
+                    if (reload)      window.location.replace(reload);
+                    if (reloadBlank) window.open(reloadBlank, '_blank');
+                });
+            }, 200);
+        } else {
+            Swal.fire({ title: 'Gagal', html: params.message, icon: 'error', showConfirmButton: true });
+        }
+    }
+
+    function showPopupWithAction(title, subtitle, icon, method, data, url, modal, table, reload, callback) {
+        Swal.fire({
+            title: title,
+            html: subtitle,
+            icon: icon,
+            showCancelButton: true,
+            confirmButtonColor: '#4DCA88',
+            confirmButtonText: 'Yes!',
+            cancelButtonText: 'Cancel',
+        }).then(function (result) {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: url,
+                    headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+                    data: data,
+                    type: method,
+                    beforeSend: function () { showLoading('Harap Menunggu!', 'Sedang menyimpan data'); },
+                }).done(function (data) {
+                    Swal.close();
+                    if (data.status === 'success') {
+                        Swal.fire({ title: 'Ok!', text: data.message, icon: 'success', showConfirmButton: false, timer: 1500 });
+                        if (modal) $(modal).modal('hide');
+                        if (table) {
+                            $.each(table, function (i, item) { $(item).DataTable().ajax.reload(null, false); });
+                        }
+                        if (typeof callback === 'function') callback(data);
+                        if (reload) window.location.replace(reload);
+                    } else {
+                        Swal.fire('Error!', data.message, 'error');
+                    }
+                }).fail(function (xhr) {
+                    Swal.close();
+                    Swal.fire('Gagal', (xhr.responseJSON || {}).message || 'Terjadi kesalahan', 'error');
+                });
+            }
         });
     }
 

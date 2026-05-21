@@ -9,28 +9,30 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * @property int    employee_id
- * @property string finger_type
+ * @property string employee_name
+ * @property int    score
+ * @property string status
+ * @property int    time_ms
  * @property string device_id
- * @property float  quality_score
- * @property int    sensor_id
  * @property string created_at
  * @property string updated_at
  * @property string deleted_at
  */
-class Fingerprints extends Model
+class AttendanceLog extends Model
 {
     use SoftDeletes;
 
-    protected $table = 'fingerprints';
+    protected $table = 'attendance_logs';
 
     protected $primaryKey = 'id';
 
     protected $fillable = [
         'employee_id',
-        'finger_type',
+        'employee_name',
+        'score',
+        'status',
+        'time_ms',
         'device_id',
-        'quality_score',
-        'sensor_id',
         'created_at',
         'updated_at',
         'deleted_at',
@@ -41,7 +43,7 @@ class Fingerprints extends Model
     ];
 
     protected $casts = [
-        'employee_id' => 'int', 'finger_type' => 'string', 'device_id' => 'string', 'quality_score' => 'float', 'sensor_id' => 'int', 'created_at' => 'datetime', 'updated_at' => 'datetime', 'deleted_at' => 'datetime'
+        'employee_id' => 'int', 'employee_name' => 'string', 'score' => 'int', 'status' => 'string', 'time_ms' => 'int', 'device_id' => 'string', 'created_at' => 'datetime', 'updated_at' => 'datetime', 'deleted_at' => 'datetime'
     ];
 
     protected $dates = [
@@ -63,16 +65,6 @@ class Fingerprints extends Model
         return $this->belongsTo(Employee::class, 'employee_id');
     }
 
-    public function samples()
-    {
-        return $this->hasMany(FingerprintSamples::class, 'fingerprint_id');
-    }
-
-    public function template()
-    {
-        return $this->hasOne(FingerprintTemplates::class, 'fingerprint_id');
-    }
-
     public static function mapSchema($params = [], $user = [])
     {
         $model = new self;
@@ -81,10 +73,11 @@ class Fingerprints extends Model
             'field' => [
                 'id' => ['column' => $model->table.'.id', 'alias' => 'id', 'type' => 'int'],
                 'employee_id' => ['column' => $model->table.'.employee_id', 'alias' => 'employee_id', 'type' => 'int'],
-                'finger_type' => ['column' => $model->table.'.finger_type', 'alias' => 'finger_type', 'type' => 'string'],
+                'employee_name' => ['column' => $model->table.'.employee_name', 'alias' => 'employee_name', 'type' => 'string'],
+                'score' => ['column' => $model->table.'.score', 'alias' => 'score', 'type' => 'int'],
+                'status' => ['column' => $model->table.'.status', 'alias' => 'status', 'type' => 'string'],
+                'time_ms' => ['column' => $model->table.'.time_ms', 'alias' => 'time_ms', 'type' => 'int'],
                 'device_id' => ['column' => $model->table.'.device_id', 'alias' => 'device_id', 'type' => 'string'],
-                'quality_score' => ['column' => $model->table.'.quality_score', 'alias' => 'quality_score', 'type' => 'float'],
-                'sensor_id' => ['column' => $model->table.'.sensor_id', 'alias' => 'sensor_id', 'type' => 'int'],
                 'created_at' => ['column' => $model->table.'.created_at', 'alias' => 'created_at', 'type' => 'date'],
                 'updated_at' => ['column' => $model->table.'.updated_at', 'alias' => 'updated_at', 'type' => 'date'],
                 'deleted_at' => ['column' => $model->table.'.deleted_at', 'alias' => 'deleted_at', 'type' => 'date'],
@@ -236,6 +229,10 @@ class Fingerprints extends Model
 
         if (isset($params['_token']) && $params['_token']) {
             unset($params['_token']);
+        }
+
+        if (!in_array($params['status'] ?? '', ['match', 'not_match'])) {
+            $params['status'] = 'not_match';
         }
 
         if (isset($params['id']) && $params['id']) {

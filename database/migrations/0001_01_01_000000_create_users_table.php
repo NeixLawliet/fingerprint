@@ -9,22 +9,11 @@ return new class extends Migration {
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-
-            // identitas utama
             $table->string('name');
-            $table->string('email')->nullable()->unique();
-            $table->string('phone')->nullable();
-
-            // opsional untuk login manual (kalau mau hybrid login)
-            $table->string('password')->nullable();
-
-            // opsional untuk device fingerprint
-            $table->string('device_id')->nullable();
-
-            // status user
-            $table->boolean('is_active')->default(true);
-            $table->softDeletes();
-
+            $table->string('email')->unique();
+            $table->string('password');
+            $table->enum('role', ['admin', 'operator'])->default('operator');
+            $table->rememberToken();
             $table->timestamps();
         });
     }
