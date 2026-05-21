@@ -1,89 +1,94 @@
-@extends('layouts.app')
+@extends('layouts.main')
+
 @section('title', 'Fingerprint Samples')
 
 @section('content')
-
-<div class="card">
-    <div class="card-header d-flex align-items-center justify-content-between">
-        <h6><i class="fas fa-database me-2 text-success"></i>Data Fingerprint Samples</h6>
-        <button class="btn btn-primary btn-sm" id="btnCreate" style="border-radius:8px;font-size:13px">
-            <i class="fas fa-plus me-1"></i> Tambah Sample
-        </button>
-    </div>
-    <div class="card-body">
-        <div class="table-responsive">
-            <table id="dtSamples" class="table table-hover w-100">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Fingerprint ID</th>
-                        <th>Sample Index</th>
-                        <th>Raw Data</th>
-                        <th>Dibuat</th>
-                        <th style="width:110px">Aksi</th>
-                    </tr>
-                </thead>
-            </table>
-        </div>
-    </div>
-</div>
-
-{{-- MODAL CREATE / EDIT --}}
-<div class="modal fade" id="modalSample" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="modalSampleTitle">Tambah Sample</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <input type="hidden" id="sampleId">
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <label class="form-label">Fingerprint ID <span class="text-danger">*</span></label>
-                        <input type="number" class="form-control" id="sampleFpId" placeholder="1" min="1">
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Sample Index <span class="text-danger">*</span></label>
-                        <input type="number" class="form-control" id="sampleIndex" placeholder="0" min="0">
-                    </div>
-                    <div class="col-12">
-                        <label class="form-label">Raw Data (Base64 / JSON)</label>
-                        <textarea class="form-control" id="sampleRawData" rows="6"
-                            placeholder="Data mentah fingerprint dalam format base64 atau JSON array..."></textarea>
-                        <small class="text-muted">Data dikirim otomatis oleh ESP32. Isi manual jika diperlukan.</small>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-light btn-sm" data-bs-dismiss="modal">Batal</button>
-                <button class="btn btn-primary btn-sm" id="btnSaveSample">
-                    <i class="fas fa-save me-1"></i> Simpan
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0"><i class="fas fa-database me-2 text-success"></i>Data Fingerprint Samples</h6>
+                <button class="btn btn-success btn-sm" id="add-button">
+                    <i class="fas fa-plus me-1"></i> Tambah Sample
                 </button>
             </div>
+            <div class="card-body">
+                <table id="main-table" class="table table-hover nowrap w-100">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Fingerprint ID</th>
+                            <th>Sample Index</th>
+                            <th>Raw Data</th>
+                            <th>Dibuat</th>
+                            <th class="text-end">Aksi</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
+
+@section('modal')
+
+<div class="modal fade" id="form-modal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <form id="main-form">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="formModalTitle">Tambah Sample</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="id" id="input-id">
+
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <label class="form-label">Fingerprint <span class="text-danger">*</span></label>
+                            <select class="form-select" name="fingerprint_id" id="input-fingerprint_id">
+                                <option value="">Pilih Fingerprint</option>
+                            </select>
+                        </div>
+
+                        <div class="col-6">
+                            <label class="form-label">Sample Index <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" name="sample_index" id="input-sample_index" placeholder="0" min="0">
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label">Raw Data (Base64 / JSON)</label>
+                            <textarea class="form-control" name="raw_data" id="input-raw_data" rows="6" placeholder="Data mentah fingerprint..."></textarea>
+                            <small class="text-muted">Data dikirim otomatis oleh ESP32. Isi manual jika diperlukan.</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal">Tutup</button>
+                    <button type="submit" class="btn btn-success">Simpan</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
 
-{{-- MODAL VIEW RAW DATA --}}
-<div class="modal fade" id="modalViewRaw" tabindex="-1">
-    <div class="modal-dialog modal-lg">
+<div class="modal fade" id="view-raw-modal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Raw Data — Sample #<span id="viewSampleId"></span></h5>
+                <h5 class="modal-title">Raw Data — Sample #<span id="view-sample-id"></span></h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <textarea class="form-control font-monospace" id="viewRawData" rows="12" readonly></textarea>
-                <div class="mt-2 d-flex gap-2">
-                    <small class="text-muted">Ukuran: <strong id="viewRawSize">-</strong></small>
-                </div>
+                <textarea class="form-control font-monospace" id="view-raw-data" rows="12" readonly></textarea>
+                <small class="text-muted mt-2 d-block">Ukuran: <strong id="view-raw-size">-</strong></small>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-secondary btn-sm" id="btnCopyRaw">
+                <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal">Tutup</button>
+                <button type="button" class="btn btn-success" id="btn-copy-raw">
                     <i class="fas fa-copy me-1"></i> Copy
                 </button>
-                <button class="btn btn-light btn-sm" data-bs-dismiss="modal">Tutup</button>
             </div>
         </div>
     </div>
@@ -93,123 +98,172 @@
 
 @push('scripts')
 <script>
-$(function () {
+    let dt;
+    let endpoint = 'fingerprint_samples';
 
-    var dt = $('#dtSamples').DataTable({
-        processing: true,
-        serverSide: true,
-        ajax: { url: '/api/fingerprint_samples_datatables', type: 'POST' },
-        columns: [
-            { data: 'id',             name: 'id',             width: '55px' },
-            { data: 'fingerprint_id', name: 'fingerprint_id' },
-            { data: 'sample_index',   name: 'sample_index' },
-            {
-                data: 'raw_data', name: 'raw_data', orderable: false, searchable: false,
-                render: function (v, t, row) {
-                    if (!v) return '<span class="text-muted">-</span>';
-                    var len = v.length;
-                    return '<button class="btn btn-sm btn-outline-secondary btn-view-raw" data-id="' + row.id + '" style="border-radius:6px;font-size:11px;padding:2px 10px">'
-                        + '<i class="fas fa-eye me-1"></i>' + len.toLocaleString() + ' chars</button>';
-                }
-            },
-            {
-                data: 'created_at', name: 'created_at',
-                render: function (v) { return v ? v.substring(0, 10) : '-'; }
-            },
-            {
-                data: 'id', name: 'action', orderable: false, searchable: false,
-                render: function (id) {
-                    return '<button class="btn btn-warning btn-sm btn-edit me-1" data-id="' + id + '" style="border-radius:6px;width:28px;height:28px;padding:0">'
-                        + '<i class="fas fa-edit" style="font-size:11px"></i></button>'
-                        + '<button class="btn btn-danger btn-sm btn-delete" data-id="' + id + '" style="border-radius:6px;width:28px;height:28px;padding:0">'
-                        + '<i class="fas fa-trash" style="font-size:11px"></i></button>';
-                }
-            }
-        ],
-        language: { processing: '<i class="fas fa-spinner fa-spin"></i> Memuat...' },
-        order: [[0, 'desc']],
-        pageLength: 10
-    });
+    drawDatatable();
 
-    function resetModal() {
-        $('#sampleId, #sampleFpId, #sampleIndex, #sampleRawData').val('');
+    function drawDatatable() {
+        dt = $('#main-table').DataTable({
+            destroy: true,
+            pageLength: 10,
+            processing: true,
+            serverSide: true,
+            responsive: true,
+            ajax: {
+                url: BASE_URL + '/api/' + endpoint + '_datatables',
+                type: 'POST',
+                dataType: 'json',
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                },
+            },
+            columns: [
+                {
+                    data: 'id',
+                    name: 'id',
+                    visible: false
+                },
+                {
+                    data: 'fingerprint_id',
+                    name: 'fingerprint_id'
+                },
+                {
+                    data: 'sample_index',
+                    name: 'sample_index'
+                },
+                {
+                    data: 'raw_data',
+                    name: 'raw_data',
+                    orderable: false,
+                    searchable: false,
+                    render: function (v, t, row) {
+                        if (!v) return '<span class="text-muted">-</span>';
+                        return '<a href="javascript:void(0);" class="btn btn-sm btn-outline-secondary" id="view-raw" data-id="' + row.id + '">'
+                            + '<i class="fas fa-eye me-1"></i>' + v.length.toLocaleString() + ' chars</a>';
+                    }
+                },
+                {
+                    data: 'created_at',
+                    name: 'created_at',
+                    render: function (v) { return v ? v.substring(0, 10) : '-'; }
+                },
+                {
+                    data: 'action',
+                    name: 'action',
+                    orderable: false,
+                    searchable: false,
+                    className: 'text-end'
+                },
+            ],
+            order: [[0, 'desc']],
+        });
     }
 
-    $('#btnCreate').on('click', function () {
-        resetModal();
-        $('#sampleIndex').val(0);
-        $('#modalSampleTitle').text('Tambah Sample');
-        new bootstrap.Modal('#modalSample').show();
+    $(document).on('click', '#add-button', function () {
+        resetAllInputOnForm('#main-form');
+        $('#input-id').val('');
+        $('#input-sample_index').val(0);
+        getFingerprints({ element: '#input-fingerprint_id' });
+        $('#formModalTitle').text('Tambah Sample');
+        $('#form-modal').modal('show');
     });
 
-    $(document).on('click', '.btn-edit', function () {
-        var id = $(this).data('id');
-        $.get('/api/fingerprint_samples/' + id, function (d) {
-            $('#modalSampleTitle').text('Edit Sample');
-            $('#sampleId').val(d.id);
-            $('#sampleFpId').val(d.fingerprint_id);
-            $('#sampleIndex').val(d.sample_index);
-            $('#sampleRawData').val(d.raw_data);
-            new bootstrap.Modal('#modalSample').show();
-        });
-    });
+    $(document).on('click', '#edit-data', function (e) {
+        e.preventDefault();
 
-    $(document).on('click', '.btn-view-raw', function () {
-        var id = $(this).data('id');
-        $.get('/api/fingerprint_samples/' + id, function (d) {
-            $('#viewSampleId').text(d.id);
-            $('#viewRawData').val(d.raw_data || '');
-            $('#viewRawSize').text((d.raw_data ? d.raw_data.length : 0).toLocaleString() + ' chars');
-            new bootstrap.Modal('#modalViewRaw').show();
-        });
-    });
-
-    $('#btnCopyRaw').on('click', function () {
-        var text = $('#viewRawData').val();
-        navigator.clipboard.writeText(text).then(function () { toast('Berhasil dicopy'); });
-    });
-
-    $('#btnSaveSample').on('click', function () {
-        var id = $('#sampleId').val();
-        var data = {
-            fingerprint_id: $('#sampleFpId').val(),
-            sample_index:   $('#sampleIndex').val(),
-            raw_data:       $('#sampleRawData').val()
-        };
-
-        if (!data.fingerprint_id) { toast('Fingerprint ID wajib diisi', 'warning'); return; }
-
-        var url    = id ? '/api/fingerprint_samples/' + id : '/api/fingerprint_samples';
-        var method = id ? 'PUT' : 'POST';
-
-        $('#btnSaveSample').prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i> Menyimpan...');
+        const id = $(this).data('id');
 
         $.ajax({
-            url: url, type: method,
-            data: JSON.stringify(data), contentType: 'application/json',
-            success: function () {
-                bootstrap.Modal.getInstance('#modalSample').hide();
-                dt.ajax.reload(null, false);
-                toast(id ? 'Data berhasil diperbarui' : 'Data berhasil ditambahkan');
+            url: BASE_URL + '/api/' + endpoint + '/' + id,
+            type: 'GET',
+            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+            dataType: 'JSON',
+            beforeSend: function () {
+                showLoading('Harap Menunggu!', 'Sedang mengambil data');
             },
-            error: function (xhr) { toast(xhr.responseJSON?.message || 'Terjadi kesalahan', 'error'); },
-            complete: function () {
-                $('#btnSaveSample').prop('disabled', false).html('<i class="fas fa-save me-1"></i> Simpan');
-            }
+            success: function (d) {
+                $('#input-id').val(d.id);
+                getFingerprints({ element: '#input-fingerprint_id', selected_val: d.fingerprint_id });
+                $('#input-sample_index').val(d.sample_index);
+                $('#input-raw_data').val(d.raw_data);
+                $('#formModalTitle').text('Edit Sample');
+                $('#form-modal').modal('show');
+                Swal.close();
+            },
         });
     });
 
-    $(document).on('click', '.btn-delete', function () {
-        var id = $(this).data('id');
-        confirmDelete(function () {
-            $.ajax({
-                url: '/api/fingerprint_samples/' + id, type: 'DELETE',
-                success: function () { dt.ajax.reload(null, false); toast('Data berhasil dihapus'); },
-                error: function () { toast('Gagal menghapus data', 'error'); }
-            });
+    $(document).on('click', '#view-raw', function (e) {
+        e.preventDefault();
+
+        const id = $(this).data('id');
+
+        $.ajax({
+            url: BASE_URL + '/api/' + endpoint + '/' + id,
+            type: 'GET',
+            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+            dataType: 'JSON',
+            beforeSend: function () {
+                showLoading('Harap Menunggu!', 'Sedang mengambil data');
+            },
+            success: function (d) {
+                $('#view-sample-id').text(d.id);
+                $('#view-raw-data').val(d.raw_data || '');
+                $('#view-raw-size').text((d.raw_data ? d.raw_data.length : 0).toLocaleString() + ' chars');
+                $('#view-raw-modal').modal('show');
+                Swal.close();
+            },
         });
     });
 
-});
+    $('#btn-copy-raw').on('click', function () {
+        navigator.clipboard.writeText($('#view-raw-data').val()).then(function () {
+            toast('Berhasil dicopy');
+        });
+    });
+
+    $(document).on('click', '#delete-data', function (e) {
+        e.preventDefault();
+
+        const id = $(this).data('id');
+
+        showPopupWithAction(
+            'Apakah Anda Yakin ?',
+            'Menghapus data sample ini ?',
+            'warning',
+            'DELETE',
+            null,
+            BASE_URL + '/api/' + endpoint + '/' + id,
+            '',
+            ['#main-table']
+        );
+    });
+
+    $('#main-form').on('submit', function (e) {
+        e.preventDefault();
+
+        const id = $('#input-id').val();
+
+        $.ajax({
+            url: id ? BASE_URL + '/api/' + endpoint + '/' + id : BASE_URL + '/api/' + endpoint,
+            type: id ? 'PATCH' : 'POST',
+            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+            data: JSON.stringify({
+                fingerprint_id: $('#input-fingerprint_id').val(),
+                sample_index:   $('#input-sample_index').val(),
+                raw_data:       $('#input-raw_data').val(),
+            }),
+            contentType: 'application/json',
+            dataType: 'json',
+            beforeSend: function () {
+                showLoading('Harap Menunggu!', 'Sedang menyimpan data');
+            },
+            success: function (res) {
+                Swal.close();
+                showAlertOnSubmit(res, '#form-modal', '#main-table');
+            },
+        });
+    });
 </script>
 @endpush

@@ -1,140 +1,133 @@
-@extends('layouts.app')
+@extends('layouts.main')
+
 @section('title', 'Fingerprints')
 
 @section('content')
-
-<div class="card">
-    <div class="card-header d-flex align-items-center justify-content-between">
-        <h6><i class="fas fa-fingerprint me-2 text-danger"></i>Data Fingerprints</h6>
-        <button class="btn btn-primary btn-sm" id="btnCreate" style="border-radius:8px;font-size:13px">
-            <i class="fas fa-plus me-1"></i> Tambah Fingerprint
-        </button>
-    </div>
-    <div class="card-body">
-        <div class="table-responsive">
-            <table id="dtFingerprints" class="table table-hover w-100">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>User ID</th>
-                        <th>Finger Type</th>
-                        <th>Device ID</th>
-                        <th>Quality</th>
-                        <th>Template</th>
-                        <th>Dibuat</th>
-                        <th style="width:120px">Aksi</th>
-                    </tr>
-                </thead>
-            </table>
-        </div>
-    </div>
-</div>
-
-{{-- MODAL CREATE / EDIT --}}
-<div class="modal fade" id="modalFP" tabindex="-1">
-    <div class="modal-dialog modal-md">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="modalFPTitle">Tambah Fingerprint</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <input type="hidden" id="fpId">
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <label class="form-label">User ID <span class="text-danger">*</span></label>
-                        <input type="number" class="form-control" id="fpUserId" placeholder="1" min="1">
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Finger Type <span class="text-danger">*</span></label>
-                        <select class="form-select" id="fpFingerType">
-                            <option value="">-- Pilih --</option>
-                            <option value="right_thumb">Right Thumb</option>
-                            <option value="right_index">Right Index</option>
-                            <option value="right_middle">Right Middle</option>
-                            <option value="right_ring">Right Ring</option>
-                            <option value="right_pinky">Right Pinky</option>
-                            <option value="left_thumb">Left Thumb</option>
-                            <option value="left_index">Left Index</option>
-                            <option value="left_middle">Left Middle</option>
-                            <option value="left_ring">Left Ring</option>
-                            <option value="left_pinky">Left Pinky</option>
-                        </select>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Device ID</label>
-                        <input type="text" class="form-control" id="fpDeviceId" placeholder="ESP32-001">
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Quality Score</label>
-                        <input type="number" class="form-control" id="fpQualityScore"
-                            placeholder="0.00" step="0.01" min="0" max="100">
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-light btn-sm" data-bs-dismiss="modal">Batal</button>
-                <button class="btn btn-primary btn-sm" id="btnSaveFP">
-                    <i class="fas fa-save me-1"></i> Simpan
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0"><i class="fas fa-fingerprint me-2 text-danger"></i>Data Fingerprints</h6>
+                <button class="btn btn-success btn-sm" id="add-button">
+                    <i class="fas fa-plus me-1"></i> Tambah Fingerprint
                 </button>
             </div>
+            <div class="card-body">
+                <table id="main-table" class="table table-hover nowrap w-100">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Employee ID</th>
+                            <th>Finger Type</th>
+                            <th>Device ID</th>
+                            <th>Quality</th>
+                            <th>Dibuat</th>
+                            <th class="text-end">Aksi</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
+
+@section('modal')
+
+<div class="modal fade" id="form-modal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form id="main-form">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="formModalTitle">Tambah Fingerprint</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="id" id="input-id">
+
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <label class="form-label">Karyawan <span class="text-danger">*</span></label>
+                            <select class="form-select" name="employee_id" id="input-employee_id">
+                                <option value="">Pilih Karyawan</option>
+                            </select>
+                        </div>
+
+                        <div class="col-6">
+                            <label class="form-label">Finger Type <span class="text-danger">*</span></label>
+                            <select class="form-select" name="finger_type" id="input-finger_type">
+                                <option value="">-- Pilih --</option>
+                                <option value="right_thumb">Right Thumb</option>
+                                <option value="right_index">Right Index</option>
+                                <option value="right_middle">Right Middle</option>
+                                <option value="right_ring">Right Ring</option>
+                                <option value="right_pinky">Right Pinky</option>
+                                <option value="left_thumb">Left Thumb</option>
+                                <option value="left_index">Left Index</option>
+                                <option value="left_middle">Left Middle</option>
+                                <option value="left_ring">Left Ring</option>
+                                <option value="left_pinky">Left Pinky</option>
+                            </select>
+                        </div>
+
+                        <div class="col-6">
+                            <label class="form-label">Device ID</label>
+                            <input type="text" class="form-control" name="device_id" id="input-device_id" placeholder="ESP32-001">
+                        </div>
+
+                        <div class="col-6">
+                            <label class="form-label">Quality Score</label>
+                            <input type="number" class="form-control" name="quality_score" id="input-quality_score" placeholder="0.00" step="0.01" min="0" max="100">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal">Tutup</button>
+                    <button type="submit" class="btn btn-success">Simpan</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
 
-{{-- MODAL HASIL PROCESS --}}
-<div class="modal fade" id="modalProcessResult" tabindex="-1">
-    <div class="modal-dialog modal-md">
+<div class="modal fade" id="process-result-modal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">
-                    <i class="fas fa-cogs me-2"></i>Hasil Processing — Fingerprint #<span id="processedFpId"></span>
-                </h5>
+                <h5 class="modal-title">Hasil Processing — Fingerprint #<span id="processed-fp-id"></span></h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-
-                {{-- Template info --}}
                 <div class="card mb-3" style="border-left:4px solid #5c6bc0">
                     <div class="card-body py-3">
                         <div class="row g-2 text-center">
                             <div class="col-4">
-                                <div class="fw-bold text-primary" id="resVectorSize">-</div>
+                                <div class="fw-bold text-primary" id="res-vector-size">-</div>
                                 <small class="text-muted">Features</small>
                             </div>
                             <div class="col-4">
-                                <div class="fw-bold text-primary" id="resSampleCount">-</div>
+                                <div class="fw-bold text-primary" id="res-sample-count">-</div>
                                 <small class="text-muted">Samples</small>
                             </div>
                             <div class="col-4">
-                                <div class="fw-bold text-primary" id="resAlgoVersion">-</div>
+                                <div class="fw-bold text-primary" id="res-algo-version">-</div>
                                 <small class="text-muted">Algorithm</small>
                             </div>
                         </div>
                     </div>
                 </div>
-
-                {{-- Match result --}}
                 <div class="text-center mb-3">
-                    <div id="resMatchBadge" class="mb-2"></div>
-                    <div style="font-size:36px;font-weight:700" id="resScore">-</div>
+                    <div id="res-match-badge" class="mb-2"></div>
+                    <div style="font-size:36px;font-weight:700" id="res-score">-</div>
                     <small class="text-muted">Similarity Score</small>
                 </div>
-
-                {{-- Progress bar --}}
                 <div class="progress mb-3" style="height:10px;border-radius:8px">
-                    <div class="progress-bar" id="resProgressBar"
-                        role="progressbar" style="width:0%;border-radius:8px"
-                        aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                    <div class="progress-bar" id="res-progress-bar" role="progressbar" style="width:0%;border-radius:8px"></div>
                 </div>
-
-                <div class="alert mb-0" id="resNote" style="font-size:13px"></div>
+                <div class="alert mb-0" id="res-note" style="font-size:13px"></div>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-light btn-sm" data-bs-dismiss="modal">Tutup</button>
-                <a href="{{ route('fingerprint_logs.index') }}" class="btn btn-outline-primary btn-sm">
-                    <i class="fas fa-clipboard-list me-1"></i> Lihat Logs
-                </a>
+                <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal">Tutup</button>
             </div>
         </div>
     </div>
@@ -144,231 +137,198 @@
 
 @push('scripts')
 <script>
-$(function () {
+    let dt;
+    let endpoint = 'fingerprints';
 
-    // ===== DATATABLE =====
-    var dt = $('#dtFingerprints').DataTable({
-        processing: true,
-        serverSide: true,
-        ajax: { url: '/api/fingerprints_datatables', type: 'POST' },
-        columns: [
-            { data: 'id', name: 'id', width: '50px' },
-            { data: 'user_id', name: 'user_id' },
-            {
-                data: 'finger_type', name: 'finger_type',
-                render: function (v) {
-                    return '<code style="font-size:12px">' + (v || '-') + '</code>';
-                }
-            },
-            { data: 'device_id', name: 'device_id', defaultContent: '-' },
-            {
-                data: 'quality_score', name: 'quality_score',
-                render: function (v) {
-                    var val = parseFloat(v || 0);
-                    var color = val >= 70 ? '#065f46' : val >= 40 ? '#92400e' : '#991b1b';
-                    var bg    = val >= 70 ? '#d1fae5' : val >= 40 ? '#fef3c7' : '#fee2e2';
-                    return '<span style="background:' + bg + ';color:' + color
-                        + ';padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600">'
-                        + val.toFixed(1) + '</span>';
-                }
-            },
-            {
-                // Cek apakah template sudah ada via API
-                data: 'id', name: 'template_status', orderable: false, searchable: false,
-                render: function (id) {
-                    return '<span class="template-badge" id="tpl-' + id + '">'
-                        + '<i class="fas fa-spinner fa-spin text-muted" style="font-size:11px"></i>'
-                        + '</span>';
-                }
-            },
-            {
-                data: 'created_at', name: 'created_at',
-                render: function (v) { return v ? v.substring(0, 10) : '-'; }
-            },
-            {
-                data: 'id', name: 'action', orderable: false, searchable: false,
-                render: function (id) {
-                    return '<button class="btn btn-success btn-sm btn-process me-1" data-id="' + id
-                        + '" title="Process template" style="border-radius:6px;width:28px;height:28px;padding:0">'
-                        + '<i class="fas fa-cogs" style="font-size:11px"></i></button>'
-                        + '<button class="btn btn-warning btn-sm btn-edit me-1" data-id="' + id
-                        + '" style="border-radius:6px;width:28px;height:28px;padding:0">'
-                        + '<i class="fas fa-edit" style="font-size:11px"></i></button>'
-                        + '<button class="btn btn-danger btn-sm btn-delete" data-id="' + id
-                        + '" style="border-radius:6px;width:28px;height:28px;padding:0">'
-                        + '<i class="fas fa-trash" style="font-size:11px"></i></button>';
-                }
-            }
-        ],
-        language: { processing: '<i class="fas fa-spinner fa-spin"></i> Memuat...' },
-        order: [[0, 'desc']],
-        pageLength: 10
-    });
+    drawDatatable();
 
-    // Cek status template tiap row setelah draw
-    dt.on('draw', function () {
-        $('#dtFingerprints tbody tr').each(function () {
-            var id = $(this).find('.btn-process').data('id');
-            if (!id) return;
-            checkTemplateStatus(id);
-        });
-    });
-
-    function checkTemplateStatus(fpId) {
-        $.get('/api/fingerprint_templates?fingerprint_id=' + fpId + '&all=1', function (r) {
-            var rows = r.data || r;
-            var exists = rows.some(function (t) { return t.fingerprint_id == fpId; });
-            $('#tpl-' + fpId).html(
-                exists
-                    ? '<span class="badge-match"><i class="fas fa-check me-1"></i>Ada</span>'
-                    : '<span class="badge-inactive">Belum</span>'
-            );
+    function drawDatatable() {
+        dt = $('#main-table').DataTable({
+            destroy: true,
+            pageLength: 10,
+            processing: true,
+            serverSide: true,
+            responsive: true,
+            ajax: {
+                url: BASE_URL + '/api/' + endpoint + '_datatables',
+                type: 'POST',
+                dataType: 'json',
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                },
+            },
+            columns: [
+                {
+                    data: 'id',
+                    name: 'id',
+                    visible: false
+                },
+                {
+                    data: 'employee_id',
+                    name: 'employee_id'
+                },
+                {
+                    data: 'finger_type',
+                    name: 'finger_type',
+                    render: function (v) {
+                        return '<code>' + (v || '-') + '</code>';
+                    }
+                },
+                {
+                    data: 'device_id',
+                    name: 'device_id',
+                    defaultContent: '-'
+                },
+                {
+                    data: 'quality_score',
+                    name: 'quality_score',
+                    render: function (v) {
+                        const val   = parseFloat(v || 0);
+                        const color = val >= 70 ? '#065f46' : val >= 40 ? '#92400e' : '#991b1b';
+                        const bg    = val >= 70 ? '#d1fae5' : val >= 40 ? '#fef3c7' : '#fee2e2';
+                        return '<span style="background:' + bg + ';color:' + color + ';padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600">'
+                            + val.toFixed(1) + '</span>';
+                    }
+                },
+                {
+                    data: 'created_at',
+                    name: 'created_at',
+                    render: function (v) { return v ? v.substring(0, 10) : '-'; }
+                },
+                {
+                    data: 'action',
+                    name: 'action',
+                    orderable: false,
+                    searchable: false,
+                    className: 'text-end'
+                },
+            ],
+            order: [[0, 'desc']],
         });
     }
 
-    // ===== PROCESS FINGERPRINT =====
-    $(document).on('click', '.btn-process', function () {
-        var id = $(this).data('id');
-        var $btn = $(this);
+    $(document).on('click', '#add-button', function () {
+        resetAllInputOnForm('#main-form');
+        $('#input-id').val('');
+        getEmployees({ element: '#input-employee_id' });
+        $('#formModalTitle').text('Tambah Fingerprint');
+        $('#form-modal').modal('show');
+    });
 
-        Swal.fire({
-            title: 'Proses Fingerprint #' + id + '?',
-            html: 'Server akan mengekstrak template dari sample yang tersimpan<br>dan melakukan matching.',
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#198754',
-            cancelButtonColor: '#6b7280',
-            confirmButtonText: '<i class="fas fa-cogs me-1"></i> Proses',
-            cancelButtonText: 'Batal'
-        }).then(function (result) {
-            if (!result.isConfirmed) return;
+    $(document).on('click', '#edit-data', function (e) {
+        e.preventDefault();
 
-            $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin" style="font-size:11px"></i>');
+        const id = $(this).data('id');
 
-            $.ajax({
-                url: '/api/fingerprints/' + id + '/process',
-                type: 'POST',
-                contentType: 'application/json',
-                data: JSON.stringify({}),
-                success: function (r) {
-                    showProcessResult(id, r);
-                    dt.ajax.reload(null, false);
-                },
-                error: function (xhr) {
-                    var msg = xhr.responseJSON?.message || 'Gagal memproses fingerprint';
-                    toast(msg, 'error');
-                },
-                complete: function () {
-                    $btn.prop('disabled', false)
-                        .html('<i class="fas fa-cogs" style="font-size:11px"></i>');
-                }
-            });
+        $.ajax({
+            url: BASE_URL + '/api/' + endpoint + '/' + id,
+            type: 'GET',
+            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+            dataType: 'JSON',
+            beforeSend: function () {
+                showLoading('Harap Menunggu!', 'Sedang mengambil data');
+            },
+            success: function (d) {
+                $('#input-id').val(d.id);
+                getEmployees({ element: '#input-employee_id', selected_val: d.employee_id });
+                $('#input-finger_type').val(d.finger_type);
+                $('#input-device_id').val(d.device_id);
+                $('#input-quality_score').val(d.quality_score);
+                $('#formModalTitle').text('Edit Fingerprint');
+                $('#form-modal').modal('show');
+                Swal.close();
+            },
         });
+    });
+
+    $(document).on('click', '#process-data', function (e) {
+        e.preventDefault();
+
+        const id = $(this).data('id');
+        const $btn = $(this);
+
+        showPopupWithAction(
+            'Proses Fingerprint #' + id + '?',
+            'Server akan mengekstrak template dari sample yang tersimpan.',
+            'question',
+            'POST',
+            JSON.stringify({}),
+            BASE_URL + '/api/' + endpoint + '/' + id + '/process',
+            '',
+            ['#main-table'],
+            null,
+            function (res) { showProcessResult(id, res); }
+        );
     });
 
     function showProcessResult(id, r) {
-        var match   = r.match || {};
-        var tpl     = r.template || {};
-        var isMatch = match.status === 'match';
-        var score   = parseFloat(match.similarity_score || 0);
-        var pct     = Math.round(score * 100);
+        const match   = r.match || {};
+        const tpl     = r.template || {};
+        const isMatch = match.status === 'match';
+        const score   = parseFloat(match.similarity_score || 0);
+        const pct     = Math.round(score * 100);
 
-        $('#processedFpId').text(id);
-        $('#resVectorSize').text(tpl.vector_size || '-');
-        $('#resSampleCount').text(tpl.sample_count || '-');
-        $('#resAlgoVersion').text(tpl.algorithm_version || '-');
-        $('#resScore').text(score.toFixed(4));
+        $('#processed-fp-id').text(id);
+        $('#res-vector-size').text(tpl.vector_size || '-');
+        $('#res-sample-count').text(tpl.sample_count || '-');
+        $('#res-algo-version').text(tpl.algorithm_version || '-');
+        $('#res-score').text(score.toFixed(4));
 
         if (isMatch) {
-            $('#resMatchBadge').html('<span class="badge-match" style="font-size:14px;padding:6px 18px">'
-                + '<i class="fas fa-check-circle me-1"></i>MATCH</span>');
-            $('#resProgressBar')
-                .css('width', pct + '%')
-                .removeClass('bg-danger').addClass('bg-success');
-            $('#resNote').removeClass('alert-danger').addClass('alert-success').text(match.note || '');
+            $('#res-match-badge').html('<span class="badge-match" style="font-size:14px;padding:6px 18px"><i class="fas fa-check-circle me-1"></i>MATCH</span>');
+            $('#res-progress-bar').css('width', pct + '%').removeClass('bg-danger').addClass('bg-success');
+            $('#res-note').removeClass('alert-danger').addClass('alert-success').text(match.note || '');
         } else {
-            $('#resMatchBadge').html('<span class="badge-no-match" style="font-size:14px;padding:6px 18px">'
-                + '<i class="fas fa-times-circle me-1"></i>NOT MATCH</span>');
-            $('#resProgressBar')
-                .css('width', pct + '%')
-                .removeClass('bg-success').addClass('bg-danger');
-            $('#resNote').removeClass('alert-success').addClass('alert-danger').text(match.note || '');
+            $('#res-match-badge').html('<span class="badge-no-match" style="font-size:14px;padding:6px 18px"><i class="fas fa-times-circle me-1"></i>NOT MATCH</span>');
+            $('#res-progress-bar').css('width', pct + '%').removeClass('bg-success').addClass('bg-danger');
+            $('#res-note').removeClass('alert-success').addClass('alert-danger').text(match.note || '');
         }
 
-        new bootstrap.Modal('#modalProcessResult').show();
+        $('#process-result-modal').modal('show');
     }
 
-    // ===== CREATE / EDIT =====
-    function resetModal() {
-        $('#fpId').val('');
-        $('#fpUserId, #fpDeviceId, #fpQualityScore').val('');
-        $('#fpFingerType').val('');
-    }
+    $(document).on('click', '#delete-data', function (e) {
+        e.preventDefault();
 
-    $('#btnCreate').on('click', function () {
-        resetModal();
-        $('#modalFPTitle').text('Tambah Fingerprint');
-        new bootstrap.Modal('#modalFP').show();
+        const id = $(this).data('id');
+
+        showPopupWithAction(
+            'Apakah Anda Yakin ?',
+            'Menghapus data fingerprint ini ?',
+            'warning',
+            'DELETE',
+            null,
+            BASE_URL + '/api/' + endpoint + '/' + id,
+            '',
+            ['#main-table']
+        );
     });
 
-    $(document).on('click', '.btn-edit', function () {
-        var id = $(this).data('id');
-        $.get('/api/fingerprints/' + id, function (d) {
-            $('#modalFPTitle').text('Edit Fingerprint');
-            $('#fpId').val(d.id);
-            $('#fpUserId').val(d.user_id);
-            $('#fpFingerType').val(d.finger_type);
-            $('#fpDeviceId').val(d.device_id);
-            $('#fpQualityScore').val(d.quality_score);
-            new bootstrap.Modal('#modalFP').show();
-        });
-    });
+    $('#main-form').on('submit', function (e) {
+        e.preventDefault();
 
-    $('#btnSaveFP').on('click', function () {
-        var id = $('#fpId').val();
-        var data = {
-            user_id:       $('#fpUserId').val(),
-            finger_type:   $('#fpFingerType').val(),
-            device_id:     $('#fpDeviceId').val(),
-            quality_score: $('#fpQualityScore').val()
-        };
-
-        if (!data.user_id || !data.finger_type) {
-            toast('User ID dan finger type wajib diisi', 'warning'); return;
-        }
-
-        var url    = id ? '/api/fingerprints/' + id : '/api/fingerprints';
-        var method = id ? 'PUT' : 'POST';
-
-        $('#btnSaveFP').prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i> Menyimpan...');
+        const id = $('#input-id').val();
 
         $.ajax({
-            url: url, type: method,
-            data: JSON.stringify(data), contentType: 'application/json',
-            success: function () {
-                bootstrap.Modal.getInstance('#modalFP').hide();
-                dt.ajax.reload(null, false);
-                toast(id ? 'Data berhasil diperbarui' : 'Data berhasil ditambahkan');
+            url: id ? BASE_URL + '/api/' + endpoint + '/' + id : BASE_URL + '/api/' + endpoint,
+            type: id ? 'PATCH' : 'POST',
+            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+            data: JSON.stringify({
+                employee_id:   $('#input-employee_id').val(),
+                finger_type:   $('#input-finger_type').val(),
+                device_id:     $('#input-device_id').val(),
+                quality_score: $('#input-quality_score').val(),
+            }),
+            contentType: 'application/json',
+            dataType: 'json',
+            beforeSend: function () {
+                showLoading('Harap Menunggu!', 'Sedang menyimpan data');
             },
-            error: function (xhr) { toast(xhr.responseJSON?.message || 'Terjadi kesalahan', 'error'); },
-            complete: function () {
-                $('#btnSaveFP').prop('disabled', false).html('<i class="fas fa-save me-1"></i> Simpan');
-            }
+            success: function (res) {
+                Swal.close();
+                showAlertOnSubmit(res, '#form-modal', '#main-table');
+            },
         });
     });
-
-    // ===== DELETE =====
-    $(document).on('click', '.btn-delete', function () {
-        var id = $(this).data('id');
-        confirmDelete(function () {
-            $.ajax({
-                url: '/api/fingerprints/' + id, type: 'DELETE',
-                success: function () { dt.ajax.reload(null, false); toast('Data berhasil dihapus'); },
-                error: function () { toast('Gagal menghapus data', 'error'); }
-            });
-        });
-    });
-
-});
 </script>
 @endpush

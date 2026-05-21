@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.main')
 
 @section('title', 'Log Absensi')
 
@@ -52,9 +52,19 @@
                 },
             },
             columns: [
-                { data: 'id',            name: 'id',            visible: false },
-                { data: 'employee_name', name: 'employee_name', defaultContent: '<em class="text-muted">Unknown</em>' },
-                { data: 'score',         name: 'score' },
+                { 
+                    data: 'id',
+                    name: 'id',            
+                    visible: false 
+                },
+                { 
+                    data: 'employee_name', 
+                    name: 'employee_name', 
+                },
+                { 
+                    data: 'score',
+                    name: 'score' 
+                },
                 {
                     data: 'status',
                     name: 'status',
@@ -64,8 +74,14 @@
                             : '<span class="badge-no-match"><i class="fas fa-times me-1"></i>No Match</span>';
                     }
                 },
-                { data: 'device_id',  name: 'device_id',  defaultContent: '-' },
-                { data: 'created_at', name: 'created_at', defaultContent: '-' },
+                { 
+                    data: 'device_id',  
+                    name: 'device_id',  
+                },
+                { 
+                    data: 'created_at', 
+                    name: 'created_at', 
+                },
                 {
                     data: 'action',
                     name: 'action',

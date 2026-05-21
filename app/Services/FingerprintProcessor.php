@@ -33,9 +33,9 @@ class FingerprintProcessor
     //  ENTRY POINT — input: base64 dari 4-bit packed image (2 piksel/byte)
     //  R503S native: 256×144 piksel @ 4bpp = 18.432 bytes → base64 ~24.576 chars
     // -----------------------------------------------------------------------
-    public static function extractFeatures(string $base64Data): array
+    public static function extractFeatures(string $base64_data): array
     {
-        $bytes = base64_decode($base64Data, true);
+        $bytes = base64_decode($base64_data, true);
         if ($bytes === false || strlen($bytes) < 500) return [];
 
         // Unpack 4-bit nibbles → 8-bit pixels (scale 0–15 × 17 = 0–255)
@@ -53,9 +53,9 @@ class FingerprintProcessor
 
         $pixels = self::histEqualize($pixels, $len);
 
-        [$Gx, $Gy] = self::computeSobelFlat($pixels, $width, $height);
+        [$gx, $gy] = self::computeSobelFlat($pixels, $width, $height);
 
-        return self::blockFeatures($Gx, $Gy, $width, $height);
+        return self::blockFeatures($gx, $gy, $width, $height);
     }
 
     // -----------------------------------------------------------------------
@@ -69,29 +69,29 @@ class FingerprintProcessor
         $cdf = []; $total = 0;
         for ($i = 0; $i < 256; $i++) { $total += $hist[$i]; $cdf[$i] = $total; }
 
-        $cdfMin = 0;
-        for ($i = 0; $i < 256; $i++) { if ($cdf[$i] > 0) { $cdfMin = $cdf[$i]; break; } }
+        $cdf_min = 0;
+        for ($i = 0; $i < 256; $i++) { if ($cdf[$i] > 0) { $cdf_min = $cdf[$i]; break; } }
 
-        $denom = $len - $cdfMin;
+        $denom = $len - $cdf_min;
         if ($denom == 0) return $pixels;
 
         $lut = [];
         for ($i = 0; $i < 256; $i++) {
-            $lut[$i] = (int) round(($cdf[$i] - $cdfMin) / $denom * 255);
+            $lut[$i] = (int) round(($cdf[$i] - $cdf_min) / $denom * 255);
         }
         return array_map(fn($v) => $lut[$v], $pixels);
     }
 
     // -----------------------------------------------------------------------
     //  SOBEL 3×3 — FLAT ARRAY (optimasi utama)
-    //  Sebelum: $Gx[$y][$x] = double hash lookup (lambat)
-    //  Sesudah: $Gx[$y*$w+$x] = single hash lookup (cepat)
+    //  Sebelum: $gx[$y][$x] = double hash lookup (lambat)
+    //  Sesudah: $gx[$y*$w+$x] = single hash lookup (cepat)
     // -----------------------------------------------------------------------
     private static function computeSobelFlat(array $pixels, int $width, int $height): array
     {
         $size = $width * $height;
-        $Gx   = array_fill(0, $size, 0.0);
-        $Gy   = array_fill(0, $size, 0.0);
+        $gx   = array_fill(0, $size, 0.0);
+        $gy   = array_fill(0, $size, 0.0);
 
         for ($y = 1; $y < $height - 1; $y++) {
             // Pre-compute row offsets — hindari perkalian berulang di inner loop
@@ -108,72 +108,72 @@ class FingerprintProcessor
                 $bc = $pixels[$yp1w + $x];   $br = $pixels[$yp1w + $xp1];
 
                 $idx      = $yw + $x;
-                $Gx[$idx] = (-$tl - 2*$ml - $bl + $tr + 2*$mr + $br) * 0.125; // /8
-                $Gy[$idx] = (-$tl - 2*$tc - $tr + $bl + 2*$bc + $br) * 0.125;
+                $gx[$idx] = (-$tl - 2*$ml - $bl + $tr + 2*$mr + $br) * 0.125; // /8
+                $gy[$idx] = (-$tl - 2*$tc - $tr + $bl + 2*$bc + $br) * 0.125;
             }
         }
 
-        return [$Gx, $Gy];
+        return [$gx, $gy];
     }
 
     // -----------------------------------------------------------------------
     //  EKSTRAKSI FITUR PER BLOK
     // -----------------------------------------------------------------------
-    private static function blockFeatures(array $Gx, array $Gy, int $width, int $height): array
+    private static function blockFeatures(array $gx, array $gy, int $width, int $height): array
     {
         $bs   = self::BLOCK_SIZE;
         $bins = self::HIST_BINS;
         $cols = intdiv($width,  $bs);
         $rows = intdiv($height, $bs);
 
-        $features = [];
-        $featPerBg = $bins + 4; // jumlah fitur per background block (zeros)
+        $features    = [];
+        $feat_per_bg = $bins + 4; // jumlah fitur per background block (zeros)
 
         for ($br = 0; $br < $rows; $br++) {
             for ($bc = 0; $bc < $cols; $bc++) {
 
                 $hist = array_fill(0, $bins, 0.0);
-                $sumMag = $sumPosGx = $sumNegGx = $sumPosGy = $sumNegGy = 0.0;
-                $Vx = $Vy = 0.0;
+                $sum_mag = $sum_pos_gx = $sum_neg_gx = $sum_pos_gy = $sum_neg_gy = 0.0;
+                $vx = $vy = 0.0;
                 $mags = [];
 
-                $yStart = $br * $bs + 1; $yEnd = ($br + 1) * $bs - 1;
-                $xStart = $bc * $bs + 1; $xEnd = ($bc + 1) * $bs - 1;
+                $y_start = $br * $bs + 1; $y_end = ($br + 1) * $bs - 1;
+                $x_start = $bc * $bs + 1; $x_end = ($bc + 1) * $bs - 1;
 
-                for ($y = $yStart; $y < $yEnd; $y++) {
+                for ($y = $y_start; $y < $y_end; $y++) {
                     $yw = $y * $width; // pre-compute row offset
-                    for ($x = $xStart; $x < $xEnd; $x++) {
-                        $idx = $yw + $x;
-                        $gx  = $Gx[$idx];
-                        $gy  = $Gy[$idx];
-                        $mag = sqrt($gx * $gx + $gy * $gy);
+                    for ($x = $x_start; $x < $x_end; $x++) {
+                        $idx  = $yw + $x;
+                        $g_x  = $gx[$idx];
+                        $g_y  = $gy[$idx];
+                        $mag  = sqrt($g_x * $g_x + $g_y * $g_y);
                         if ($mag < 0.5) continue;
 
                         // Orientation histogram [0, π)
-                        $phi = atan2($gy, $gx);
+                        $phi = atan2($g_y, $g_x);
                         if ($phi < 0) $phi += M_PI;
                         $bin = (int)(($phi / M_PI) * $bins);
                         if ($bin >= $bins) $bin = $bins - 1;
                         $hist[$bin] += $mag;
 
                         // Coherence
-                        $twoPhi = 2.0 * $phi;
-                        $Vx    += $mag * cos($twoPhi);
-                        $Vy    += $mag * sin($twoPhi);
-                        $sumMag += $mag;
-                        $mags[]  = $mag;
+                        $two_phi = 2.0 * $phi;
+                        $vx     += $mag * cos($two_phi);
+                        $vy     += $mag * sin($two_phi);
+                        $sum_mag += $mag;
+                        $mags[]   = $mag;
 
                         // Chirality — signed gradient accumulation
-                        if ($gx > 0) $sumPosGx += $gx;
-                        else         $sumNegGx -= $gx; // abs
-                        if ($gy > 0) $sumPosGy += $gy;
-                        else         $sumNegGy -= $gy;
+                        if ($g_x > 0) $sum_pos_gx += $g_x;
+                        else          $sum_neg_gx -= $g_x; // abs
+                        if ($g_y > 0) $sum_pos_gy += $g_y;
+                        else          $sum_neg_gy -= $g_y;
                     }
                 }
 
                 // Background block → zeros
-                if (empty($mags) || $sumMag / count($mags) < self::BG_THRESH) {
-                    for ($i = 0; $i < $featPerBg; $i++) $features[] = 0.0;
+                if (empty($mags) || $sum_mag / count($mags) < self::BG_THRESH) {
+                    for ($i = 0; $i < $feat_per_bg; $i++) $features[] = 0.0;
                     continue;
                 }
 
@@ -181,26 +181,26 @@ class FingerprintProcessor
                 $hist = self::l2hys($hist);
 
                 // Ridge coherence
-                $coherence = $sumMag > 1e-6
-                    ? sqrt($Vx * $Vx + $Vy * $Vy) / $sumMag
+                $coherence = $sum_mag > 1e-6
+                    ? sqrt($vx * $vx + $vy * $vy) / $sum_mag
                     : 0.0;
 
                 // Energy
-                $energy = log1p($sumMag / count($mags)) / log1p(255.0);
+                $energy = log1p($sum_mag / count($mags)) / log1p(255.0);
 
                 // Chirality asymmetry
-                $asymX = ($sumPosGx + $sumNegGx > 1e-9)
-                    ? ($sumPosGx - $sumNegGx) / ($sumPosGx + $sumNegGx)
+                $asym_x = ($sum_pos_gx + $sum_neg_gx > 1e-9)
+                    ? ($sum_pos_gx - $sum_neg_gx) / ($sum_pos_gx + $sum_neg_gx)
                     : 0.0;
-                $asymY = ($sumPosGy + $sumNegGy > 1e-9)
-                    ? ($sumPosGy - $sumNegGy) / ($sumPosGy + $sumNegGy)
+                $asym_y = ($sum_pos_gy + $sum_neg_gy > 1e-9)
+                    ? ($sum_pos_gy - $sum_neg_gy) / ($sum_pos_gy + $sum_neg_gy)
                     : 0.0;
 
                 foreach ($hist as $h) $features[] = round($h, 6);
                 $features[] = round($coherence, 6);
                 $features[] = round($energy,    6);
-                $features[] = round($asymX * self::CHIRAL_WEIGHT, 6);
-                $features[] = round($asymY * self::CHIRAL_WEIGHT, 6);
+                $features[] = round($asym_x * self::CHIRAL_WEIGHT, 6);
+                $features[] = round($asym_y * self::CHIRAL_WEIGHT, 6);
             }
         }
 

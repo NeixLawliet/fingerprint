@@ -211,6 +211,9 @@
 <script>
     var BASE_URL = '{{ rtrim(request()->getSchemeAndHttpHost(), '/') }}';
 
+    let Employees   = [];
+    let Fingerprints = [];
+
     // ===== SIDEBAR TOGGLE =====
     $('#sidebarToggle').on('click', function () {
         $('#sidebar').toggleClass('open');
@@ -314,6 +317,81 @@
     }
 
     $.ajaxSetup({ headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+
+    function getEmployees(params, callback = null) {
+        let element    = params['element'],
+            isAsync    = params['is_async'] ?? true,
+            selectedVal = params['selected_val'] ?? '',
+            filter     = params['filter'] ?? '';
+
+        $.ajax({
+            url: BASE_URL + '/api/employees?all=true&order[id]=asc' + filter,
+            type: 'GET',
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+            },
+            dataType: 'JSON',
+            async: isAsync,
+            success: function (res) {
+                Employees = res;
+                if (element != '' && element != undefined && element != null) {
+                    buildEmployees(element, selectedVal);
+                }
+                callback && callback(Employees);
+            },
+            error: function () {},
+        });
+    }
+
+    function buildEmployees(element, selectedVal = '') {
+        let html = '<option value="">Pilih Karyawan</option>';
+        $.each(Employees, function (index, item) {
+            if (selectedVal == item.id) {
+                html += '<option value="' + item.id + '" selected>' + item.name + '</option>';
+            } else {
+                html += '<option value="' + item.id + '">' + item.name + '</option>';
+            }
+        });
+        $(element).html(html);
+    }
+
+    function getFingerprints(params, callback = null) {
+        let element    = params['element'],
+            isAsync    = params['is_async'] ?? true,
+            selectedVal = params['selected_val'] ?? '',
+            filter     = params['filter'] ?? '';
+
+        $.ajax({
+            url: BASE_URL + '/api/fingerprints?all=true&order[id]=asc' + filter,
+            type: 'GET',
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+            },
+            dataType: 'JSON',
+            async: isAsync,
+            success: function (res) {
+                Fingerprints = res;
+                if (element != '' && element != undefined && element != null) {
+                    buildFingerprints(element, selectedVal);
+                }
+                callback && callback(Fingerprints);
+            },
+            error: function () {},
+        });
+    }
+
+    function buildFingerprints(element, selectedVal = '') {
+        let html = '<option value="">Pilih Fingerprint</option>';
+        $.each(Fingerprints, function (index, item) {
+            let label = 'ID ' + item.id + ' — ' + (item.finger_type || '-') + ' (' + (item.device_id || '-') + ')';
+            if (selectedVal == item.id) {
+                html += '<option value="' + item.id + '" selected>' + label + '</option>';
+            } else {
+                html += '<option value="' + item.id + '">' + label + '</option>';
+            }
+        });
+        $(element).html(html);
+    }
 </script>
 
 @stack('scripts')

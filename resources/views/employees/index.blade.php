@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.main')
 
 @section('title', 'Karyawan')
 
@@ -229,11 +229,27 @@
                 },
             },
             columns: [
-                { data: 'id',            name: 'id',            visible: false },
-                { data: 'name',          name: 'name' },
-                { data: 'employee_code', name: 'employee_code', defaultContent: '<span class="text-muted">-</span>' },
-                { data: 'department',    name: 'department',    defaultContent: '<span class="text-muted">-</span>' },
-                { data: 'position',      name: 'position',      defaultContent: '<span class="text-muted">-</span>' },
+                {
+                    data: 'id',
+                    name: 'id',
+                    visible: false
+                },
+                {
+                    data: 'name',
+                    name: 'name'
+                },
+                {
+                    data: 'employee_code',
+                    name: 'employee_code'
+                },
+                {
+                    data: 'department',
+                    name: 'department'
+                },
+                {
+                    data: 'position',
+                    name: 'position'
+                },
                 {
                     data: 'finger_page',
                     name: 'finger_page',
@@ -243,8 +259,14 @@
                             : '<span class="text-muted">-</span>';
                     }
                 },
-                { data: 'device_id',  name: 'device_id',  defaultContent: '<span class="text-muted">-</span>' },
-                { data: 'created_at', name: 'created_at', defaultContent: '-' },
+                {
+                    data: 'device_id',
+                    name: 'device_id'
+                },
+                {
+                    data: 'created_at',
+                    name: 'created_at'
+                },
                 {
                     data: 'action',
                     name: 'action',
