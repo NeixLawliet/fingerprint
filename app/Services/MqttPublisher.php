@@ -15,8 +15,8 @@ class MqttPublisher
     public static function publish(string $topic, array $data, int $qos = 0): void
     {
         try {
-            $host      = env('MQTT_HOST', '127.0.0.1');
-            $port      = (int) env('MQTT_PORT', 1883);
+            $host = env('MQTT_HOST', '192.168.100.72');
+            $port = (int) env('MQTT_PORT', 1883);
             $client_id = env('MQTT_CLIENT_ID', 'pringer-laravel') . '-' . uniqid();
 
             $settings = (new ConnectionSettings)
